@@ -1,0 +1,7 @@
+main4.py
+__pycache__/
+logs/
+*.xls
+*.xlsx
+*.csv
+.env
