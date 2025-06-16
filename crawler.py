@@ -7,7 +7,7 @@ import logging
 from collections import Counter
 from github_api import GitHubAPIClient
 from data_handler import DataHandler
-from utils import parse_repo_url, setup_logging, is_rate_limit_exceeded
+from utils import parse_repo_url, setup_logging
 from config import CONTRIBUTOR_DELAY, REPO_DELAY, DEFAULT_LOG_LEVEL
 from scraper import get_pinned_repos
 import re
@@ -141,10 +141,6 @@ class GitHubCrawler:
             self.logger.info(f"Using single repository URL: {master_repo}")
             owner, repo = parse_repo_url(master_repo)
             readme_content = self.api_client.get_repo_readme(owner, repo)
-            while is_rate_limit_exceeded(readme_content):
-                self.logger.warning(f"Rate limit exceeded while reading readme! Wait and we'll try again.")
-                time.sleep(300)
-                
             if not readme_content:
                 self.logger.error(f"Failed to retrieve README content for {master_repo}")
                 return
