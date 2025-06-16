@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import time
+from utils import is_rate_limit_exceeded
 
 def get_pinned_repos(username):
     """
@@ -28,7 +29,16 @@ def get_pinned_repos(username):
     
     try:
         # Make request to GitHub profile
-        response = requests.get(profile_url, headers=headers)
+        while True:
+            response = requests.get(profile_url, headers=headers)
+        
+            if is_rate_limit_exceeded(response):
+                print(f"Rate limit exceeded while getting repo contributors! Wait and we'll try again.")
+                time.sleep(300)
+            else:
+                break
+            
+        
         response.raise_for_status()
         
         # Check if user exists (GitHub returns 404 for non-existent users)

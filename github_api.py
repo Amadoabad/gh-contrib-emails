@@ -12,7 +12,7 @@ from config import (
     RATE_LIMIT_DELAY
 )
 
-from utils import is_valid_email, clean_blog_url
+from utils import is_valid_email, clean_blog_url, is_rate_limit_exceeded
 
 
 class GitHubAPIClient:
@@ -35,8 +35,15 @@ class GitHubAPIClient:
             url = f'{self.base_url}/repos/{owner}/{repo}/contributors'
             params = {'page': page, 'per_page': 100}
             
-            response = requests.get(url, headers=self.headers, params=params)
-            
+            while True:
+                response = requests.get(url, headers=self.headers, params=params)
+
+                if is_rate_limit_exceeded(response):
+                    self.logger.warning(f"Rate limit exceeded while getting repo contributors! Wait and we'll try again.")
+                    time.sleep(300)
+                else:
+                    break
+                
             if response.status_code != 200:
                 self.logger.error(f"Error fetching contributors for {owner}/{repo}: {response.status_code}")
                 break
@@ -147,7 +154,16 @@ class GitHubAPIClient:
         
         for page in range(1, 4):  # Check first 3 pages (300 events max)
             params['page'] = page
-            response = requests.get(url, headers=self.headers, params=params)
+            
+            while True:
+                response = requests.get(url, headers=self.headers, params=params)
+                
+                if is_rate_limit_exceeded(response):
+                    self.logger.warning(f"Rate limit exceeded while getting commits from events! Wait and we'll try again.")
+                    time.sleep(300)
+                else:
+                    break
+                
             
             if response.status_code != 200:
                 break
@@ -175,8 +191,15 @@ class GitHubAPIClient:
         """Get detailed user profile information"""
         url = f'{self.base_url}/users/{username}'
         
-        response = requests.get(url, headers=self.headers)
-        
+        while True:
+            response = requests.get(url, headers=self.headers)
+
+            if is_rate_limit_exceeded(response):
+                self.logger.warning(f"Rate limit exceeded while getting user profile! Wait and we'll try again.")
+                time.sleep(300)
+            else:
+                break
+            
         if response.status_code != 200:
             self.logger.error(f"Error fetching profile for {username}: {response.status_code}")
             return {}
@@ -213,7 +236,15 @@ class GitHubAPIClient:
                 'type': 'all'  # Only repos owned by the user
             }
             
-            response = requests.get(repos_url, headers=self.headers, params=params)
+            while True:
+                response = requests.get(repos_url, headers=self.headers, params=params)
+
+                if is_rate_limit_exceeded(response):
+                    self.logger.warning(f"Rate limit exceeded while getting commit email from repo! Wait and we'll try again.")
+                    time.sleep(300)
+                else:
+                    break
+                
             if response.status_code != 200:
                 self.logger.warning(f"Could not fetch repos for {username}")
                 return None
@@ -249,7 +280,15 @@ class GitHubAPIClient:
                     'type': 'owner'
                 }
                 
-                response = requests.get(repos_url, headers=self.headers, params=recent_params)
+                while True:
+                    response = requests.get(repos_url, headers=self.headers, params=recent_params)
+
+                    if is_rate_limit_exceeded(response):
+                        self.logger.warning(f"Rate limit exceeded while getting commit email from repo 2nd! Wait and we'll try again.")
+                        time.sleep(300)
+                    else:
+                        break
+                    
                 if response.status_code == 200:
                     recent_repos = response.json()
                     for i, repo in enumerate(recent_repos[:5]):  # Check 5 most recent
@@ -281,7 +320,15 @@ class GitHubAPIClient:
             commits_url = f'{self.base_url}/repos/{repo_name}/commits'
             params = {'author': username, 'per_page': 10}
             
-            response = requests.get(commits_url, headers=self.headers, params=params)
+            while True:
+                response = requests.get(commits_url, headers=self.headers, params=params)
+                
+                if is_rate_limit_exceeded(response):
+                    self.logger.warning(f"Rate limit exceeded while extractin email from repo commits, Wait and we'll try again.")
+                    time.sleep(300)
+                else:
+                    break
+                
             if response.status_code != 200:
                 return None
             
@@ -307,8 +354,15 @@ class GitHubAPIClient:
             # Construct API URL
             api_url = f'{self.base_url}/repos/{repo_name}/commits/{commit_sha}'
 
-            response = requests.get(api_url, headers=self.headers)
-            
+            while True:
+                response = requests.get(api_url, headers=self.headers)
+
+                if is_rate_limit_exceeded(response):
+                    self.logger.warning(f"Rate limit exceeded while getting email from commit API! Wait and we'll try again.")
+                    time.sleep(300)
+                else:
+                    break
+                
             if response.status_code != 200:
                 return None
 
@@ -325,8 +379,15 @@ class GitHubAPIClient:
         """Get the README content of a repository"""
         readme_url = f'{self.base_url}/repos/{owner}/{repo}/readme'
         
-        response = requests.get(readme_url, headers=self.headers)
+        while True:
+            response = requests.get(readme_url, headers=self.headers)
         
+            if is_rate_limit_exceeded(response):
+                self.logger.warning(f"Rate limit exceeded while getting repo contributors! Wait and we'll try again.")
+                time.sleep(300)
+            else:
+                break
+            
         if response.status_code != 200:
             self.logger.error(f"Error fetching README for {owner}/{repo}: {response.status_code}")
             return None
@@ -343,7 +404,16 @@ class GitHubAPIClient:
     def get_repo_stars(self, owner, repo):
         """Get the repo count of stars"""
         url = f"{self.base_url}/repos/{owner}/{repo}"
-        response = requests.get(url, headers=self.headers)
+        while True:
+            response = requests.get(url, headers=self.headers)
+
+            if is_rate_limit_exceeded(response):
+                self.logger.warning(f"Rate limit exceeded while getting repo stars! Wait and we'll try again.")
+                time.sleep(300)
+            else:
+                break
+            
+
         data = response.json()
         
         try:

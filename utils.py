@@ -116,3 +116,14 @@ def export_links_to_file(links, filename='exported_links.txt'):
             f.write(link + '\n')
     
     logging.info(f"Exported {len(links)} links to {filename}")
+    
+def is_rate_limit_exceeded(response):
+    """Check if the GitHub API response indicates a rate limit exceeded error."""
+    if response.status_code == 403:
+        try:
+            data = response.json()
+            return "API rate limit exceeded" in data.get("message", "")
+        except ValueError:
+            # Response is not JSON
+            return False
+    return False
