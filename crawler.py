@@ -98,7 +98,7 @@ class GitHubCrawler:
             self.logger.error(f"Error processing {repo_url}: {e}")
             return []
     
-    def process_multiple_repos(self, repo_urls, min_stars, min_repo_contributions=100, min_yearly_contributions=400):
+    def process_multiple_repos(self, repo_urls, min_repo_contributions=100, min_yearly_contributions=400, min_stars= 1000):
         """Process multiple repositories and return combined results"""
         all_contributors = []
         
