@@ -98,7 +98,7 @@ class GitHubCrawler:
             self.logger.error(f"Error processing {repo_url}: {e}")
             return []
     
-    def process_multiple_repos(self, repo_urls, min_repo_contributions=100, min_yearly_contributions=400, min_stars= 1000):
+    def process_multiple_repos(self, repo_urls, min_repo_contributions=100, min_yearly_contributions=400, min_stars= None):
         """Process multiple repositories and return combined results"""
         all_contributors = []
         
@@ -168,8 +168,8 @@ class GitHubCrawler:
         return star_counts
 
     
-    def save_to_excel(self, contributors, filename='github_contributors_results.xlsx'):
+    def save_to_excel(self, contributors, filename='github_contributors_results.xlsx', check_directory='old/'):
         """Save results to Excel file"""
-        return self.data_handler.save_to_excel(contributors, filename)
+        return self.data_handler.save_to_excel(contributors, filename, check_directory)
 
     
